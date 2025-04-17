@@ -28,8 +28,7 @@ export default function alexaValidator(req) {
 
 // Verificar que la solicitud proviene de Alexa mediante la validación de la firma
 function verifyAlexaRequest(req) {
-  // En un entorno de producción, deberías implementar la verificación completa del certificado
-  // Para simplificar, aquí solo verificamos que los encabezados necesarios estén presentes
+  // En un entorno de producción, verificamos que los encabezados necesarios estén presentes
   const signatureCertChainUrl = req.headers["signaturecertchainurl"]
   const signature = req.headers["signature"]
 
@@ -47,11 +46,47 @@ function verifyAlexaRequest(req) {
     return false
   }
 
-  // En un entorno de producción, aquí deberías:
-  // 1. Descargar el certificado de la URL
-  // 2. Verificar la cadena de certificados
-  // 3. Verificar que el certificado no está expirado
-  // 4. Verificar la firma de la solicitud
+  // Verificar la cadena de certificados
+  const rootCert = fs.readFileSync(path.resolve(__dirname, "AmazonRootCA1.pem"))
+  const cert = fs.readFileSync(signatureCertChainUrl)
+  const chain = [cert]
+  const verifyOptions = {
+    issuer: rootCert,
+    algorithm: "sha256WithRSAEncryption",
+  }
+  try {
+    const verifiedChain = crypto.verifyChain(chain, verifyOptions)
+    if (!verifiedChain) {
+      return false
+    }
+  } catch (error) {
+    console.error("Error verifying certificate chain:", error)
+    return false
+  }
+
+  // Verificar que el certificado no está expirado
+  const certInfo = crypto.getCertificateInfo(cert)
+  const now = new Date()
+  if (certInfo.notBefore > now || certInfo.notAfter < now) {
+    return false
+  }
+
+  // Verificar la firma de la solicitud
+  const body = JSON.stringify(req.body)
+  const hash = crypto.createHash("sha256")
+  hash.update(body)
+  const hashString = hash.digest("hex")
+  const signatureBuffer = Buffer.from(signature, "base64")
+  const verified = crypto.verify(hashString, signatureBuffer, cert)
+  if (!verified) {
+    return false
+  }
+
+  // Verificar que el hash de la solicitud coincide con el hash del body de la solicitud
+  const requestHash = req.headers["x-amz-checksum"]
+  if (requestHash !== hashString) {
+    return false
+  }
 
   return true
 }
