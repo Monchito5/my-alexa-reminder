@@ -39,3 +39,14 @@ export default async function handler(req, res) {
     })
   }
 }
+
+export default async function handler(req, res) {
+  if (req.method === 'GET') {
+    return res.status(200).send('✅ Endpoint activo: Alexa Skill en /api');
+  }
+  // Sólo para POST vendrá Alexa
+  if (!alexaValidator(req)) {
+    return res.status(401).send('Unauthorized');
+  }
+}
+
