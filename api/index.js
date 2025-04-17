@@ -1,10 +1,10 @@
 import { SkillBuilders } from "ask-sdk-core"
-import LaunchRequestHandler from "../handlers/LaunchRequest"
-import CreateReminderIntentHandler from "../handlers/CreateReminderIntent"
-import ListRemindersIntentHandler from "../handlers/ListRemindersIntent"
-import DeleteReminderIntentHandler from "../handlers/DeleteReminderIntent"
-import SessionEndedRequestHandler from "../handlers/SessionEndedRequest"
-import alexaValidator from "../utils/alexaValidator"
+import LaunchRequestHandler from "../handlers/LaunchRequest.js"
+import CreateReminderIntentHandler from "../handlers/CreateReminderIntent.js"
+import ListRemindersIntentHandler from "../handlers/ListRemindersIntent.js"
+import DeleteReminderIntentHandler from "../handlers/DeleteReminderIntent.js"
+import SessionEndedRequestHandler from "../handlers/SessionEndedRequest.js"
+import alexaValidator from "../utils/alexaValidator.js"
 
 const skill = SkillBuilders.custom()
   .addRequestHandlers(
